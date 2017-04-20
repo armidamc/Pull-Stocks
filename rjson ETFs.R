@@ -8,51 +8,32 @@ SName1 <- JsonData$query$results$quote$Name
 SSymbol1 <- JsonData$query$results$quote$Symbol
 SPreviousClose1 <- JsonData$query$results$quote$PreviousClose
 SDate1 <- JsonData$query$results$quote$LastTradeDate
+#install.packages("rjson")
+library(rjson)
 
-#BRTRAC.MX
-JsonData2 <- fromJSON(file = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22BRTRAC.MX%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=" ) 
+vector.SSymbol <- c("CONSUMO.MX","ENLACE.MX","ALSEA.MX","QQQ","BRTRAC10.MX","CHNTRAC11.MX")
+                    #,"BRTRAC.MX")
+obs <- length(vector.SSymbol)
+str1 <- 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22'
+str2 <- '%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback='
+vector.SName <- vector()
+vector.SPreviousClose <- vector()
+vector.SDate <- vector()
 
-SName2 <- JsonData2$query$results$quote$Name
-SSymbol2 <- JsonData2$query$results$quote$Symbol
-SPreviousClose2 <- JsonData2$query$results$quote$PreviousClose
-SDate2 <- JsonData2$query$results$quote$LastTradeDate
+for (i in 1:obs){
+  vector.SPreviousClose[i] <- '0'
+  vector.SDate[i] <- 'NA'
+  vector.SName[i] <- 'NA'
+}
 
-#CONSUMO.MX
-JsonData3 <- fromJSON(file = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22CONSUMO.MX%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=" ) 
+#intentar varias veces hasta que los índices de China se actualicen
+for (i in 1:obs){
+  link <- paste0(str1,vector.SSymbol[i],str2) 
+  a <- fromJSON(file=link)
+  vector.SPreviousClose[i] <- a$query$results$quote$PreviousClose
+  vector.SDate[i] <- a$query$results$quote$LastTradeDate
+  vector.SName[i] <- a$query$results$quote$Name
+  }
 
-SName3 <- JsonData3$query$results$quote$Name
-SSymbol3 <- JsonData3$query$results$quote$Symbol
-SPreviousClose3 <- JsonData3$query$results$quote$PreviousClose
-SDate3 <- JsonData3$query$results$quote$LastTradeDate
-
-#ENLACE.MX
-JsonData4 <- fromJSON(file = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22ENLACE.MX%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=" ) 
-
-SName4 <- JsonData4$query$results$quote$Name
-SSymbol4 <- JsonData4$query$results$quote$Symbol
-SPreviousClose4 <- JsonData4$query$results$quote$PreviousClose
-SDate4 <- JsonData4$query$results$quote$LastTradeDate
-
-#ALSEA.MX
-JsonData5 <- fromJSON(file = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22ALSEA.MX%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=" ) 
-
-SName5 <- JsonData5$query$results$quote$Name
-SSymbol5 <- JsonData5$query$results$quote$Symbol
-SPreviousClose5 <- JsonData5$query$results$quote$PreviousClose
-SDate5 <- JsonData5$query$results$quote$LastTradeDate
-
-#QQQ
-JsonData6 <- fromJSON(file = "https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20(%22QQQ%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=" ) 
-
-SName6 <- JsonData6$query$results$quote$Name
-SSymbol6 <- JsonData6$query$results$quote$Symbol
-SPreviousClose6 <- JsonData6$query$results$quote$PreviousClose
-SDate6 <- JsonData6$query$results$quote$LastTradeDate
-
-vector.Sname <- c(SName1,SName2,SName3,SName4,SName5,SName6)
-vector.Ssymbol <- c(SSymbol1,SSymbol2,SSymbol3,SSymbol4,SSymbol5,SSymbol6)
-vector.Spreviousclose <- c(SPreviousClose1,SPreviousClose2,SPreviousClose3,SPreviousClose4,SPreviousClose5,SPreviousClose6)
-vector.Sdate <- c(SDate1,SDate2,SDate3,SDate4,SDate5,SDate6)
-dataframe.SNames <- data.frame(StockName=(vector.Sname), StockSymbol=(vector.Ssymbol), LastPrice=(vector.Spreviousclose), Date=(vector.Sdate))
-
-write.csv(dataframe.SNames, file="PriceETFs.csv", row.names=TRUE)
+dataframe.SInfo <- data.frame(StockName=(vector.SName), StockSymbol=(vector.SSymbol), LastPrice=(vector.SPreviousClose), Date=(vector.SDate))
+write.csv(dataframe.SInfo, file="ETFs.csv", row.names=TRUE)
